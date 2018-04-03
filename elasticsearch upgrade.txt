@@ -1,0 +1,42 @@
+1. upgrade to 5.6
+https://www.elastic.co/guide/en/elasticsearch/reference/5.6/restart-upgrade.html
+ a. disable shard allocation
+ b. perform synced flush
+ c. stop elasticsearch on each node
+ c. upgrade each node one by one https://www.elastic.co/guide/en/elasticsearch/reference/5.6/rolling-upgrades.html#upgrade-node
+ d. restart master nodes first
+ e. restart the rest
+ F. wait for yellow
+ g. reenable allocation
+ 
+2. reindex indices
+ a. https://www.elastic.co/guide/en/elasticsearch/reference/6.x/reindex-upgrade-inplace.html
+ 
+3. upgrade to 6.3 - rolling restart
+ a. https://www.elastic.co/guide/en/elasticsearch/reference/6.2/rolling-upgrades.html
+ b. disable shard allocation
+ c. stop non-essential indexing and perform synced flush
+ d. shut down signle node 
+ e. upgrade that node. 
+ f. upgrade plugins
+ g. start node back up
+ h. reenable shard allocation
+ i. wait for node to recover
+ j. repeat for other nodes
+
+
+
+ALTERNATIVE 
+
+reindex from remote
+ 1. set up new elasticsearch cluster
+ 2. reindex from remote
+ 3. point scale to new cluster
+ 
+ Q. do indices retain properties? (creation date etc)
+    are servers available?
+    can you clone current cluster?
+    
+    
+https://blog.pushapps.mobi/painlessly-reindexing-your-elasticsearch-index/
+

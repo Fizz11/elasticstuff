@@ -5,29 +5,35 @@ import json
 import urllib2
 import requests
 
-baseUrl = "test"
+baseUrl = "http://10.3.2.155:8458/"
 
-listOfIndices = urllib2.urlopen(baseUrl+"something").read()
+indices = urllib2.urlopen(baseUrl+"_cat/indices?h=i").read()
+listOfIndices = indices.splitlines()
 
 for indexname in listOfIndices:
-    uniqueIndexUrl = baseUrl+"something"+indexname
+    uniqueIndexUrl = baseUrl+indexname
     indexStructureString = urllib2.urlopen(uniqueIndexUrl).read()
     indexStructureJson = json.loads(indexStructureString)
     # set up indexcreation
-    creationdate = indexStructureJson["settings"]["index"]["creation_date"]
-    del indexStructureJson["settings"]["index"]["creation_date"]
-    del indexStructureJson["settings"]["index"]["version"]
-    indexStructureJson["mappings"]["_default_"]["_meta"]["creation_date"] = creationdate
-    
+    creationdate = indexStructureJson[indexname.strip()]["settings"]["index"]["creation_date"]
+    del indexStructureJson[indexname.strip()]["settings"]["index"]["creation_date"]
+    del indexStructureJson[indexname.strip()]["settings"]["index"]["version"]
+    indexStructureJson[indexname.strip()]["mappings"]["_default_"]["_meta"] = {}
+    indexStructureJson[indexname.strip()]["mappings"]["_default_"]["_meta"]["creation_date"] = creationdate
+
+    finalIndexCreation = indexStructureJson[indexname.strip()]
+    finalIndexCreationJson = json.dumps(finalIndexCreation)
+
     #create new index
     opener = urllib2.build_opener(urllib2.HTTPHandler)
-    request = urllib2.Request(baseUrl + indexname+"-1", data=indexStructureJson)
+    request = urllib2.Request(baseUrl + indexname+"-1", data=finalIndexCreationJson)
     request.add_header('Content-Type', 'application/json')
     request.get_method = lambda: 'PUT'
     url = opener.open(request)
 
     #reindex
-    https://stackoverflow.com/questions/4476373/simple-url-get-post-function-in-python
+    reindexRequestData = "{ \"source\": { \"index\": "+indexname+"},\"dest\": { \"index\": "+indexname+"-1"+" }}"
+    requests.put(baseUrl, reindexRequestData)
     
     
     

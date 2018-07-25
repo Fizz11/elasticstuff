@@ -5,12 +5,16 @@ import json
 import urllib2
 import requests
 
-baseUrl = "http://10.3.2.155:8458/"
+baseUrl = "http://10.3.2.156:31685/"
 
 indices = urllib2.urlopen(baseUrl+"_cat/indices?h=i").read()
 listOfIndices = indices.splitlines()
 
 for indexname in listOfIndices:
+    # skipdefault indicies
+    if indexname.startswith("."):
+        continue
+
     uniqueIndexUrl = baseUrl+indexname
     indexStructureString = urllib2.urlopen(uniqueIndexUrl).read()
     indexStructureJson = json.loads(indexStructureString)
@@ -18,6 +22,7 @@ for indexname in listOfIndices:
     creationdate = indexStructureJson[indexname.strip()]["settings"]["index"]["creation_date"]
     del indexStructureJson[indexname.strip()]["settings"]["index"]["creation_date"]
     del indexStructureJson[indexname.strip()]["settings"]["index"]["version"]
+    del indexStructureJson[indexname.strip()]["settings"]["index"]["uuid"]
     indexStructureJson[indexname.strip()]["mappings"]["_default_"]["_meta"] = {}
     indexStructureJson[indexname.strip()]["mappings"]["_default_"]["_meta"]["creation_date"] = creationdate
 
@@ -32,9 +37,9 @@ for indexname in listOfIndices:
     url = opener.open(request)
 
     #reindex
-    reindexRequestData = "{ \"source\": { \"index\": "+indexname+"},\"dest\": { \"index\": "+indexname+"-1"+" }}"
-    requests.put(baseUrl, reindexRequestData)
-    
+    reindexRequestData = "{ \"source\": { \"index\": \""+indexname+"\"},\"dest\": { \"index\": \""+indexname+"-1"+"\" }}"
+    r = requests.post(baseUrl+"_reindex", reindexRequestData)
+    x = 4
     
     
     
